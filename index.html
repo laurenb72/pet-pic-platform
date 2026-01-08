@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en" ng-app="Dashboard">
+  <head>
+    <meta charset="UTF-8">
+    <title>PetPic Platform</title>
+
+    <link rel="stylesheet" type="text/css" href="CSS/bootstrap.min.css">
+
+    <style>
+      :root{
+        --baby-blue: #eaf6ff;
+        --navy: #0b1f3a;
+        --baby-pink: #f7b6c8;
+        --deep-pink: #d63384;
+        --card-border: rgba(229,231,235,0.8);
+
+        /* ✅ Change this to your background image path */
+        --bg-image: url("../images/background.jpg");
+      }
+
+      /* Soft blended background */
+      body{
+        background: var(--baby-blue);
+        background-image: url("images/background.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      body::before{
+        content:"";
+        position: fixed;
+        inset: 0;
+        background-image: var(--bg-image);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.18;                 /* <- controls how subtle it is */
+        filter: blur(1px) saturate(0.9);
+        z-index: -2;
+      }
+      body::after{
+        content:"";
+        position: fixed;
+        inset: 0;
+        background: rgba(234,246,255,0.55); /* soft wash so text stays readable */
+        z-index: -1;
+      }
+
+      /* Navbar */
+      .petpic-navbar{
+        background: var(--navy);
+        color: var(--baby-pink);
+        padding: 12px 18px;
+        border-radius: 0 0 16px 16px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+      }
+
+      .petpic-navbar .nav-wrap{
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+      }
+
+      .petpic-brand{
+        font-weight: 800;
+        letter-spacing: .2px;
+        color: var(--baby-pink);
+        text-decoration: none;
+        justify-self: start;
+      }
+
+      .petpic-nav-links{
+        display: flex;
+        gap: 18px;
+        justify-self: center;
+      }
+
+      .petpic-nav-link{
+        color: var(--baby-pink);
+        text-decoration: none;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 10px;
+        opacity: .95;
+      }
+
+      .petpic-nav-link:hover{
+        opacity: 1;
+        background: rgba(247,182,200,0.12);
+      }
+
+      .petpic-nav-link.active{
+        background: rgba(247,182,200,0.18);
+      }
+
+      /* Page headings */
+      .page-title{
+        color: var(--deep-pink);
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        margin-bottom: 6px;
+      }
+      .page-subtitle{
+        color: rgba(214,51,132,0.85);
+        margin-bottom: 14px;
+      }
+
+      /* Card-like sections (forms, search, detail container) */
+      .glass-panel{
+        background: rgba(255,255,255,0.78);
+        border: 1px solid rgba(255,255,255,0.55);
+        border-radius: 16px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+        padding: 14px 14px;
+        backdrop-filter: blur(6px);
+      }
+
+      /* Buttons */
+      .btn-petpic{
+        background: var(--navy) !important;
+        color: var(--baby-pink) !important;
+        border: 1px solid rgba(247,182,200,0.35) !important;
+        font-weight: 800;
+      }
+      .btn-petpic:hover{ filter: brightness(1.08); }
+
+      .btn-danger-soft{
+        background: rgba(255,228,230,0.95) !important;
+        border: 1px solid #fecdd3 !important;
+        color: #9f1239 !important;
+        font-weight: 800;
+      }
+
+      /* Posts grid */
+      #PostList.media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        align-items: start;
+      }
+
+      .media-card {
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0,0,0,.10);
+        background: rgba(255,255,255,0.78);
+        backdrop-filter: blur(6px);
+        cursor: pointer;
+        transition: transform .08s ease, box-shadow .08s ease;
+      }
+      .media-card:hover{
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(0,0,0,.13);
+      }
+
+      .media-thumb {
+        width: 100%;
+        height: 180px;
+        background: rgba(243,244,246,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .media-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .media-body {
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .media-title {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 900;
+        font-size: 14px;
+        color: #111827;
+        word-break: break-word;
+      }
+
+      .meta-line{
+        color: rgba(55,65,81,0.92);
+        font-size: 12px;
+      }
+
+      .image-error {
+        color: #b91c1c;
+        font-size: 12px;
+        padding: 8px 12px 0;
+        display: none;
+      }
+
+      .section-divider{
+        border-bottom: 1px solid rgba(17,24,39,0.18);
+        margin-top: 14px;
+        margin-bottom: 14px;
+      }
+
+      /* Detail view */
+      .detail-header{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .back-link{
+        text-decoration:none;
+        font-weight: 800;
+        color: var(--navy);
+        background: rgba(255,255,255,0.65);
+        border: 1px solid rgba(11,31,58,0.15);
+        padding: 6px 10px;
+        border-radius: 10px;
+      }
+      .back-link:hover{ filter: brightness(1.03); }
+
+      .detail-media{
+        width:100%;
+        height: 340px;
+        border-radius: 14px;
+        overflow:hidden;
+        background: rgba(243,244,246,0.8);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin-bottom: 12px;
+      }
+      .detail-media img{
+        width:100%;
+        height:100%;
+        object-fit: cover;
+      }
+
+      .detail-meta{
+        font-size: 12px;
+        color: rgba(55,65,81,0.92);
+      }
+
+      /* Keep deep pink text on pages */
+      #pageFeed h3, #pageFeed h4, #pageFeed p, #pageFeed label,
+      #pageProfile h3, #pageProfile h4, #pageProfile p, #pageProfile label,
+      #pageDetail h3, #pageDetail h4, #pageDetail p, #pageDetail label {
+        color: var(--deep-pink) !important;
+      }
+
+      /* Subtle helper text */
+      .muted{
+        color: rgba(75,85,99,0.9) !important;
+        font-size: 12px;
+      }
+    </style>
+
+    <script>window.PETPIC_GETSAS_ENDPOINT = "https://petpic-function-thumbnail-gfdxeaekcwb6fpe0.norwayeast-01.azurewebsites.net/api/sas";</script>
+    <script type="text/javascript" src="JS/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="JS/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="JS/app.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+
+      <!-- Navbar -->
+      <div class="petpic-navbar">
+        <div class="nav-wrap">
+          <a href="#" class="petpic-brand" id="navBrand">PetPic Platform</a>
+
+          <div class="petpic-nav-links">
+            <a href="#" class="petpic-nav-link active" id="navFeed">Feed</a>
+            <a href="#" class="petpic-nav-link" id="navProfile">My Profile</a>
+          </div>
+
+          <div></div>
+        </div>
+      </div>
+
+      <!-- FEED PAGE -->
+      <div id="pageFeed">
+
+        <div class="glass-panel">
+          <div class="row align-items-start">
+            <div class="col-12" style="text-align:center;">
+              <h3 class="page-title">Shared Pet Posts</h3>
+              <p class="page-subtitle muted">Browse posts shared by everyone. Click any post to view, edit, or delete it.</p>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom: 12px;">
+            <button id="retPosts" type="button" class="btn btn-petpic">Refresh Posts</button>
+            <span id="postsStatus" class="muted"></span>
+          </div>
+
+          <div id="PostList">
+            <h4 class="muted" style="text-align:center;">Loading posts…</h4>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- SEARCH POST (bottom of feed) -->
+          <div id="searchPanel">
+            <p style="font-weight:900;">Search for a Post</p>
+
+            <div class="mb-3">
+              <label for="searchUserID" class="form-label">User Id</label>
+              <input type="text" class="form-control" id="searchUserID" placeholder="e.g., user-3">
+            </div>
+
+            <div class="mb-3">
+              <label for="searchId" class="form-label">Post Id</label>
+              <input type="text" class="form-control" id="searchId" placeholder="e.g., 639034703669355235">
+            </div>
+
+            <button type="button" id="btnSearchPost" class="btn btn-petpic">Search</button>
+            <button type="button" id="btnClearSearch" class="btn btn-outline-secondary">Clear</button>
+
+            <div id="searchStatus" style="margin-top:10px;font-size:12px;"></div>
+            <div id="SearchResult" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <div style="height: 28px;"></div>
+      </div>
+
+      <!-- POST DETAIL PAGE -->
+      <div id="pageDetail" style="display:none;">
+        <div class="glass-panel">
+          <div class="detail-header">
+            <a href="#" class="back-link" id="btnBackToFeed">← Back to feed</a>
+            <div class="muted" id="detailStatus"></div>
+          </div>
+
+          <h3 class="page-title" style="margin-bottom: 10px;">Post Details</h3>
+
+          <div id="detailMedia" class="detail-media">
+            <span class="muted">Loading media…</span>
+          </div>
+
+          <div class="detail-meta" id="detailMeta" style="margin-bottom: 12px;"></div>
+
+          <div class="section-divider"></div>
+
+          <!-- Edit form -->
+          <p style="font-weight:900;">Edit Post</p>
+          <form id="editPostForm">
+            <div class="mb-3">
+              <label for="editCaption" class="form-label">Caption</label>
+              <input type="text" class="form-control" id="editCaption" placeholder="Update caption...">
+            </div>
+
+            <div class="mb-3">
+              <label for="editTags" class="form-label">Tags (comma-separated)</label>
+              <input type="text" class="form-control" id="editTags" placeholder="e.g., cute, cat">
+            </div>
+
+            <button type="button" id="btnSaveEdit" class="btn btn-petpic">Save Changes</button>
+            <button type="button" id="btnCancelEdit" class="btn btn-outline-secondary">Cancel</button>
+          </form>
+
+          <div id="editStatus" style="margin-top:10px;font-size:12px;"></div>
+
+          <div class="section-divider"></div>
+
+          <!-- Delete -->
+          <p style="font-weight:900;">Delete Post</p>
+          <button type="button" id="btnDeletePost" class="btn btn-danger-soft">Delete this post</button>
+          <div id="deleteStatus" style="margin-top:10px;font-size:12px;"></div>
+        </div>
+
+        <div style="height: 28px;"></div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div id="pageProfile" style="display:none;">
+        <div class="glass-panel">
+          <h3 class="page-title" style="text-align:center;">My Profile</h3>
+          <p class="page-subtitle muted" style="text-align:center;">
+            Create a new pet post here.
+          </p>
+
+          <p style="font-weight:900;">Create Post</p>
+
+          <form style="font-size: 10pt;" id="newAssetForm">
+            <div class="mb-3">
+              <label for="FileName" class="form-label">Caption</label>
+              <input type="text" class="form-control" id="FileName" placeholder="e.g., kitten">
+            </div>
+
+            <div class="mb-3">
+              <label for="Tags" class="form-label">Tags (comma-separated)</label>
+              <input type="text" class="form-control" id="Tags" placeholder="e.g., cute, cat, rescue">
+            </div>
+
+            <div class="mb-3">
+              <label for="userID" class="form-label">User Id</label>
+              <input type="text" class="form-control" id="userID" placeholder="e.g., user-3">
+            </div>
+
+            <div class="mb-3">
+              <label for="userName" class="form-label">User Name</label>
+              <input type="text" class="form-control" id="userName" placeholder="e.g., aimee">
+            </div>
+
+            <div class="mb-3">
+              <label for="UpFile" class="form-label">File to Upload</label>
+              <input type="file" class="form-control" id="UpFile" accept="image/*,video/*">
+            </div>
+
+            <button type="button" id="subNewForm" class="btn btn-petpic">Create Post</button>
+            <button type="button" id="clearNewForm" class="btn btn-outline-secondary">Clear</button>
+
+            <div id="createStatus" style="margin-top:10px;font-size:12px;"></div>
+          </form>
+        </div>
+
+        <div style="height: 28px;"></div>
+      </div>
+
+    </div>
+  </body>
+</html>
